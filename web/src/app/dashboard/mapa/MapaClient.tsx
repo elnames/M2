@@ -95,7 +95,7 @@ export function MapaClient({ points, allowedCommunes }: Props) {
         essential: true,
       })
     } else if (!comuna && mapRef) {
-      mapRef.flyTo({ center: [-70.6476, -33.457], zoom: 11, duration: 1000 })
+      mapRef.flyTo({ center: [-70.6476, -33.457], zoom: 13, duration: 1000 })
     }
   }, [mapRef])
 
@@ -104,7 +104,7 @@ export function MapaClient({ points, allowedCommunes }: Props) {
     setFilterMinScore(0)
     setFilterMaxPrice(0)
     setFilterMinPrice(0)
-    if (mapRef) mapRef.flyTo({ center: [-70.6476, -33.457], zoom: 11, duration: 800 })
+    if (mapRef) mapRef.flyTo({ center: [-70.6476, -33.457], zoom: 13, duration: 800 })
   }, [mapRef])
 
   const hasFilters = filterComuna || filterMinScore > 0 || filterMaxPrice > 0 || filterMinPrice > 0
@@ -182,7 +182,7 @@ export function MapaClient({ points, allowedCommunes }: Props) {
         <MapLibreMap
           points={filtered}
           height='h-full'
-          zoom={11}
+          zoom={13}
           center={[-70.6476, -33.457]}
           interactive={true}
           onMapReady={setMapRef}

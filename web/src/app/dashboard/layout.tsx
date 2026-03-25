@@ -19,7 +19,8 @@ export default async function DashboardLayout({ children }: { children: React.Re
         name={user.name ?? user.email ?? ''}
         planLabel={planLabel}
       />
-      <div className='flex-1 flex flex-col overflow-hidden'>
+      {/* pt-14 en mobile para compensar la top bar fija del SidebarClient */}
+      <div className='flex-1 flex flex-col overflow-hidden pt-14 md:pt-0'>
         {children}
       </div>
     </div>
