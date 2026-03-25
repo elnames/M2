@@ -1,0 +1,88 @@
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    container_name: m2_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: clave_inmo
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    networks:
+      - m2_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d clave_inmo"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  data-engine:
+    build: ./data-engine
+    container_name: m2_engine
+    restart: unless-stopped
+    ports:
+      - "3050:3050"
+    environment:
+      - DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@db:5432/clave_inmo
+      - RESEND_API_KEY=${RESEND_API_KEY}
+      - RESEND_FROM=${RESEND_FROM}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - m2_net
+
+  web:
+    build: ./web
+    container_name: m2_web
+    restart: unless-stopped
+    ports:
+      - "3080:3000"
+    environment:
+      - DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@db:5432/clave_inmo
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+      - NEXTAUTH_URL=${NEXTAUTH_URL}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - DATA_ENGINE_URL=http://data-engine:3050
+      - RESEND_API_KEY=${RESEND_API_KEY}
+    depends_on:
+      - data-engine
+    networks:
+      - m2_net
+
+  nginx:
+    image: nginx:alpine
+    container_name: m2_nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/certbot/conf:/etc/letsencrypt:ro
+      - ./nginx/certbot/www:/var/www/certbot:ro
+    depends_on:
+      - web
+    networks:
+      - m2_net
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  certbot:
+    image: certbot/certbot
+    container_name: m2_certbot
+    volumes:
+      - ./nginx/certbot/conf:/etc/letsencrypt
+      - ./nginx/certbot/www:/var/www/certbot
+    profiles:
+      - ssl
+    entrypoint: /bin/sh -c "trap exit TERM; while :; do certbot renew; sleep 12h & wait; done"
+
+volumes:
+  db_data:
+
+networks:
+  m2_net:
+    driver: bridge

@@ -1,0 +1,104 @@
+# ============================================================
+# CREDENCIALES — NUNCA SUBIR
+# ============================================================
+.env
+.env.local
+.env.*.local
+.env.production
+.env.staging
+*.key
+*.pem
+*.p12
+*.pfx
+*.crt
+*.cer
+secrets/
+credentials/
+
+# ============================================================
+# DEPENDENCIAS
+# ============================================================
+node_modules/
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+.Python
+venv/
+env/
+ENV/
+.venv/
+pip-wheel-metadata/
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# ============================================================
+# NEXT.JS / BUILD
+# ============================================================
+.next/
+out/
+.vercel/
+*.tsbuildinfo
+next-env.d.ts
+
+# ============================================================
+# ML ARTIFACTS — Generados en runtime, no en repo
+# ============================================================
+*.pkl
+*.joblib
+*.h5
+*.model
+ml_model.pkl
+
+# ============================================================
+# BASE DE DATOS / DOCKER VOLUMES
+# ============================================================
+postgres-data/
+pgdata/
+*.sql.gz
+*.dump
+
+# ============================================================
+# SSL / CERTBOT — Se generan en el servidor
+# ============================================================
+nginx/certbot/conf/
+nginx/certbot/www/
+nginx/certbot/logs/
+
+# ============================================================
+# LOGS Y TEMPORALES
+# ============================================================
+*.log
+logs/
+*.tmp
+*.temp
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.idea/
+.vscode/settings.json
+
+# ============================================================
+# CLAUDE CODE — configuración local (contiene IPs y permisos)
+# ============================================================
+.claude/settings.json
+.claude/settings.local.json
+
+# ============================================================
+# SCRIPTS DE DESARROLLO INTERNO
+# (usados durante la construcción inicial del proyecto)
+# ============================================================
+write_files.py
+write_config.py
+write_login_bg.py
+write_maplibre.py
+write_arch.py
+fix_unicode.py
+fix_map_import.py
+fix_pricing.py
+new_model.py
+new_seed_data.py
+rename_to_m2.py
