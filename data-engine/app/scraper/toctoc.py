@@ -52,13 +52,14 @@ _ANCHOR_SELECTORS = [
 async def scrape_listings(comuna: str, max_pages: int = 3) -> List[dict]:
     try:
         from playwright.async_api import async_playwright  # noqa: F401
+        logger.info('[toctoc] Usando Playwright para %s', comuna)
         return await _scrape_with_playwright(comuna, max_pages)
     except ImportError:
-        logger.warning('[toctoc] Playwright no disponible, usando httpx fallback')
+        logger.warning('[toctoc] Playwright no disponible, usando httpx fallback para %s', comuna)
         return await _scrape_with_httpx(comuna, max_pages)
     except Exception as e:
-        logger.error('[toctoc] Error en %s: %s', comuna, e)
-        return []
+        logger.error('[toctoc] Error Playwright en %s: %s — cayendo a httpx', comuna, e, exc_info=True)
+        return await _scrape_with_httpx(comuna, max_pages)
 
 
 # ─── Playwright (primario) ────────────────────────────────────────────────────

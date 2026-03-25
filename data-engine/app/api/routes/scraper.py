@@ -103,16 +103,22 @@ async def _scrape_and_score(db):
         ('yapo',               yapo.scrape_listings),
     ]
 
-    for comuna in COMUNAS_TARGET:
-        for fuente_nombre, fn_scrape in fuentes:
+    for fuente_nombre, fn_scrape in fuentes:
+        fuente_total = 0
+        for comuna in COMUNAS_TARGET:
             try:
                 props = await fn_scrape(comuna, max_pages=2)
+                fuente_total += len(props)
                 all_props.extend(props)
-                logger.info('  [%s] %s -> %d propiedades', fuente_nombre, comuna, len(props))
+                if props:
+                    logger.info('  [%s] %s -> %d propiedades', fuente_nombre, comuna, len(props))
+                else:
+                    logger.warning('  [%s] %s -> 0 propiedades', fuente_nombre, comuna)
             except Exception as e:
-                logger.error('Error [%s] %s: %s', fuente_nombre, comuna, e)
+                logger.error('Error [%s] %s: %s', fuente_nombre, comuna, e, exc_info=True)
+        logger.info('  [%s] SUBTOTAL: %d propiedades', fuente_nombre, fuente_total)
 
-    logger.info('Total scrapeado: %d', len(all_props))
+    logger.info('Total scrapeado (antes de validacion): %d', len(all_props))
 
     # Filtrar antes de entrenar el modelo para no contaminarlo
     props_validas = [p for p in all_props if _validate_property(p)]
