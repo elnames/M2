@@ -1,9 +1,13 @@
 from fastapi import APIRouter, BackgroundTasks
 from app.core.database import SessionLocal
 from app.core.models import Property, Valuation
-from app.scraper.portal_inmobiliario import scrape_listings, COMUNAS_TARGET
+from app.scraper import portal_inmobiliario, toctoc, yapo
 from app.ml.model import predict_fair_value_compat as predict_fair_value, train_model_compat as train_model
-import logging, os, threading
+import logging, os
+
+# Comunas objetivo para cada fuente
+# Todas las fuentes comparten el mismo set; cada scraper filtra su propio dict
+COMUNAS_TARGET = list(portal_inmobiliario.COMUNAS_TARGET)
 
 try:
     import resend
@@ -89,15 +93,24 @@ def _validate_property(p: dict) -> bool:
 
 
 async def _scrape_and_score(db):
-    logger.info('=== Iniciando scraping: %d comunas ===', len(COMUNAS_TARGET))
+    logger.info('=== Iniciando scraping: %d comunas × 3 fuentes ===', len(COMUNAS_TARGET))
     all_props = []
+
+    # Fuentes activas con su función de scraping
+    fuentes = [
+        ('portalinmobiliario', portal_inmobiliario.scrape_listings),
+        ('toctoc',             toctoc.scrape_listings),
+        ('yapo',               yapo.scrape_listings),
+    ]
+
     for comuna in COMUNAS_TARGET:
-        try:
-            props = await scrape_listings(comuna, max_pages=2)
-            all_props.extend(props)
-            logger.info('  %s -> %d propiedades', comuna, len(props))
-        except Exception as e:
-            logger.error('Error en %s: %s', comuna, e)
+        for fuente_nombre, fn_scrape in fuentes:
+            try:
+                props = await fn_scrape(comuna, max_pages=2)
+                all_props.extend(props)
+                logger.info('  [%s] %s -> %d propiedades', fuente_nombre, comuna, len(props))
+            except Exception as e:
+                logger.error('Error [%s] %s: %s', fuente_nombre, comuna, e)
 
     logger.info('Total scrapeado: %d', len(all_props))
 
@@ -218,7 +231,6 @@ def purge_corrupt_data():
 
 @router.post('/seed')
 def seed_database(n_per_comuna: int = 60, db=None):
-    from fastapi import Depends
     from app.scraper.seed_data import generate_seed_properties, generate_seed_with_bargains
     from app.core.database import SessionLocal
     from app.ml.model import train_model
