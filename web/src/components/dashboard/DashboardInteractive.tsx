@@ -24,6 +24,9 @@ interface HeatPoint {
   lng: number
   intensity: number
   comuna?: string
+  titulo?: string
+  precio_uf?: number
+  url?: string
 }
 
 interface Alert {

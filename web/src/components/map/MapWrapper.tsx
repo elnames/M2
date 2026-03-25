@@ -13,7 +13,10 @@ const MapLeaflet = dynamic(
   }
 )
 
-interface HeatPoint { lat: number; lng: number; intensity: number; comuna?: string }
+interface HeatPoint {
+  lat: number; lng: number; intensity: number; comuna?: string
+  titulo?: string; precio_uf?: number; url?: string
+}
 
 interface Props {
   points: HeatPoint[]
